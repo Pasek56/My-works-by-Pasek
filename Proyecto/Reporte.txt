@@ -1,3 +1,3 @@
 === REPORTE FINAL DEL DIA ===
-Unidad Mas solicitudes: D( 1 Servicios )
-Cliente mas frecuente: 4667369( 1 Servicios )
+Unidad Mas solicitudes: N/A( 0 Servicios )
+Cliente mas frecuente: N/A( 0 Servicios )

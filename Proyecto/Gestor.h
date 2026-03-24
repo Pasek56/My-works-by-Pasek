@@ -1,19 +1,25 @@
 #ifndef GESTOR_H
 #define GESTOR_H
 #include "Clientes.h"
+#include "Colas.h"
 #include <fstream>
 #include <cstdio>
 #include <cstring>
+#include <queue>
+#include <map>
 using namespace std;
 class Gestor
 {
 	private:
 		const char* Archivo;
+		Colas Co;
 	public:
 		Gestor(const char* archivo){
 			Archivo = archivo;
 		}
-		
+		Colas& getControladorColas() {
+        	return Co;
+    	}
 		void Registro(){
 			ofstream archivo(Archivo, ios::binary | ios::app);
 			if(!archivo){
@@ -24,19 +30,32 @@ class Gestor
 			Clien.CapturaData();
 			archivo.write(reinterpret_cast<char*>(&Clien), sizeof(Clientes));
 			archivo.close();
-			cout<<"Cliente Registrado"<<endl;
+			
+			Co.ColaCliente(Clien);
 		}
-		void Lista(){
-			ifstream archivo(Archivo, ios::binary);
+		void Lista(){                      
+			ifstream archivo(Archivo,ios::in | ios::binary);
 			if(!archivo){
 				cerr<<"NO hay clientes......."<<endl;
 				return;
 			}
 			Clientes temp;
+			bool Date = false;
 			while(archivo.read(reinterpret_cast<char*>(&temp), sizeof(Clientes))){
 				temp.showData();
+				Date = true;
+			}
+			if(!Date){
+				cout<<"El archivo esta vacio";
 			}
 			archivo.close();
+			cout << "\n=== ESTADO ACTUAL DE COLAS POR ZONA ===" << endl;
+		    int cp;
+		    cout << "Ingrese el CP para ver detalle de espera (o 0 para omiter): ";
+		    cin >> cp;
+		    if (cp != 0) {
+		        Co.VerCola(cp);
+		    }
 		}
 		void Modificar(const char* Search){
 			fstream archivo(Archivo, ios::binary | ios::in | ios::out);
@@ -62,7 +81,10 @@ class Gestor
 		void Delete(const char* Cola){
 			ifstream archiveIn(Archivo, ios::binary);
 			ofstream archiveOut("temp.dat", ios::binary);
-			if(!archiveIn) cout<<"No hay archivo para salida"; return;
+			if(!archiveIn || !archiveOut){
+				cout<<"No hay archivo para salida"; 
+				return;
+			}
 			Clientes TEP;
 			bool eliminado=false;
 			while(archiveIn.read(reinterpret_cast<char*>(&TEP), sizeof(Clientes))){
@@ -75,13 +97,10 @@ class Gestor
 			}
 			archiveIn.close();
 			archiveOut.close();
-			remove(Archivo);
-			rename("temp.dat",Archivo);
+			
 			if(eliminado){
-				if(remove(Archivo) != 0){
-					cout<<"Error"<<endl;
-				}
-				if(rename("temp.dat",Archivo) != 0) cout<<"Error"<<endl;
+				remove(Archivo);
+				rename("temp.dat",Archivo);
 				cout<<"Eliminacion completa";
 			}else{
 				cout<<"Cedula no encontrada"<<endl;

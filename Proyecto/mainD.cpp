@@ -3,13 +3,12 @@
 #include <cstring>
 #include <iomanip>
 #include "Reportes.h"
-#include "Gestiontrans.h"
+#include "GestionTrans.h"
 #include "Gestor.h"
 #include "GestionZona.h"
 using namespace std;
 //Participantes
 //Miguel Parada V-31.420.052
-//Luis Torres V-26.723.334
 void pausar() {
     cout << "\nPresione ENTER para continuar...";
     cin.ignore();
@@ -18,10 +17,10 @@ void pausar() {
 void limpiar() {
     system("cls");
 }
-void MenuCliente(Gestor Gest){
+void MenuCliente(Gestor& Gest){
 	int opc;
+	cin.clear();
     char auxCedula[20];
-
     do {
         limpiar();
         cout << "=== GESTION DE CLIENTES ===\n";
@@ -32,7 +31,7 @@ void MenuCliente(Gestor Gest){
         cout << "0. Volver al Menu Principal\n";
         cout << "Opcion: ";
         cin >> opc;
-
+        cin.ignore();
         switch(opc) {
             case 1:
                 limpiar();
@@ -61,9 +60,8 @@ void MenuCliente(Gestor Gest){
         }
     } while(opc != 0);
 }
-void MenuZone(GestionZona Nega){
+void MenuZone(GestionZona& Nega){
 	int opc;
-
     do {
         limpiar();
         cout << "=== GESTION DE ZONAS ===\n";
@@ -73,7 +71,7 @@ void MenuZone(GestionZona Nega){
         cout << "0. Volver al Menu Principal\n";
         cout << "Opcion: ";
         cin >> opc;
-
+        cin.ignore(1000, '\n');
         switch(opc) {
             case 1:
                 limpiar();
@@ -93,7 +91,7 @@ void MenuZone(GestionZona Nega){
         }
     } while(opc != 0);
 }
-void TransMenu(GestionTrans Tra){
+void TransMenu(GestionTrans& Tra){
 	int opc;
     char auxPlaca[20];
 
@@ -107,7 +105,7 @@ void TransMenu(GestionTrans Tra){
         cout << "0. Volver al Menu Principal\n";
         cout << "Opcion: ";
         cin >> opc;
-
+        cin.ignore();
         switch(opc) {
             case 1:
                 limpiar();
@@ -136,18 +134,18 @@ void TransMenu(GestionTrans Tra){
         }
     } while(opc != 0);
 }
-void OperationMenu(GestionTrans Gest){
+void OperationMenu(GestionTrans& Gest, Gestor& Cli){
 	int opc;
     do {
         limpiar();
         cout << "=== OPERACIONES DIARIAS ===\n";
-        cout << "1. Actualizar Ubicacion de Unidad (Asignacion)\n";
+        cout << "1. Asignar Unidad a Zona\n";
         cout << "2. Solicitar Servicio Veterinario\n";
         cout << "3. Finalizar Servicio (Liberar Unidad)\n";
         cout << "0. Volver al Menu Principal\n";
         cout << "Opcion: ";
         cin >> opc;
-
+        cin.ignore(1000, '\n');
         switch(opc) {
             case 1:
                 limpiar();
@@ -161,15 +159,14 @@ void OperationMenu(GestionTrans Gest){
                 break;
             case 3:
                 limpiar();
-                Gest.FinalizarEncargo();
+                Gest.FinalizarEncargo(Cli);
                 pausar();
                 break;
         }
     } while(opc != 0);
 }
-//YOU CAN DO IT, ROW ROW, FIGHT THE POWER!
+
 int main(int argc, char** argv) {
-	cout<<"Helo world!";
 	Gestor gClientes("clientes.dat");
     GestionZona gZonas("zonas.dat");
     GestionTrans gTransporte("transporte.dat");
@@ -189,7 +186,7 @@ int main(int argc, char** argv) {
         cout << "======================================\n";
         cout << "Seleccione una opcion: ";
         cin >> OPC;
-
+        cin.ignore();
         switch(OPC) {
             case 1:
                 MenuCliente(gClientes);
@@ -201,7 +198,7 @@ int main(int argc, char** argv) {
                 TransMenu(gTransporte);
                 break;
             case 4:
-                OperationMenu(gTransporte);
+                OperationMenu(gTransporte,gClientes);
                 break;
             case 5:
                 limpiar();

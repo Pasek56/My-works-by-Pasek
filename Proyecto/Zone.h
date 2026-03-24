@@ -27,6 +27,8 @@ class Zone
 		}
 		void Mostrar(){
 			cout<<"Zona: "<<ZonaName<<endl;
+			cout<<"ID De zona: "<<id<<endl;
+			cout<<"-------------------------"<<endl;
 		}
 		void setZonaName(const char* n){
 			strncpy(ZonaName,n,39);
