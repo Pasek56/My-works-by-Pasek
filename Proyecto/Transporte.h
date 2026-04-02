@@ -5,21 +5,15 @@ using namespace std;
 class Transporte
 {
 	private:
-		char placa[30];
-		char modelo[30];
-		char VeterinarioName[20];
-		char especialidadVet[20];
-		int zonaActual;
-		bool ocupado;
-		int Hora;
+		char placa[30] = "Pendiente";
+		char modelo[30] = "Sin modelo";
+		char VeterinarioName[20] = "Sin Asignar";
+		char especialidadVet[20] = "Ninguna";
+		int zonaActual = 0;
+		bool ocupado = false;
+		int Hora = 0;
 	public:
 		Transporte(){
-			strcpy(placa, "Pendiente");
-			strcpy(modelo, "Sin Modelo");
-			strcpy(VeterinarioName, "Sin Asignar");
-			strcpy(especialidadVet, "Ninguna");
-			zonaActual = 0;
-			ocupado = false;
 		}
 		const char* getespecialidadVet() const {return especialidadVet;}
 		const char* getplaca() const{return placa;}
@@ -32,21 +26,28 @@ class Transporte
 		void setocupado(bool Ocup) {ocupado = Ocup;}
 		
 		void CaptureData(){
-			cout<<"Modelo del vehiculo: "; cin.getline(modelo, 20);
-			cout<<"Placa del vehiculo: "; cin.getline(placa, 20);
-			cout<<"Nombre del veterinario: "; cin.getline(VeterinarioName, 30);
+			cout<<"Modelo del vehiculo: "; cin.getline(modelo, sizeof(modelo));
+			cout<<"Placa del vehiculo: "; cin.getline(placa, sizeof(placa));
+			cout<<"Nombre del veterinario: "; cin.getline(VeterinarioName,sizeof(VeterinarioName));
 			cout<<"Especialidad: ";
 			int opc;
 			cout<<"1) Emergencia"<<endl;
 			cout<<"2) Chequeo"<<endl;
 			cout<<"3) General"<<endl;
 			cin>>opc;
-			
-			cin.ignore();
-			if(opc == 1){strcpy(especialidadVet,"Emergencias");}
-			if(opc == 2){strcpy(especialidadVet,"Chequeo");}
-			if(opc == 3){strcpy(especialidadVet,"Medico General");}
-			if(opc > 4){cout<<"Ingrese una opcion valida";}
+			switch(opc){
+				case 1:
+					strcpy(especialidadVet,"Emergencias");
+					break;
+				case 2:
+					strcpy(especialidadVet,"Chequeo");
+					break;
+				case 3:
+				strcpy(especialidadVet,"Medico General");
+					break;
+				default:
+					cout<<"Ingrese una opcion valida"<<endl;
+			}
 			zonaActual = 0;
 			ocupado = false;
 		}
@@ -54,21 +55,20 @@ class Transporte
 			cout<<"----------------------------------"<<endl;
 			cout<<"[Unidad: "<<placa<<" Modelo: "<<modelo<<"]"<<endl;
 			cout<<"[Veterinario: "<<VeterinarioName<<" Especialidad: "<<especialidadVet<<"]"<<endl;
-			cout<<"Edo: "<<(ocupado ? "En servicio":"Disponible");
-			cout<<"Zona Asignada: "<<(zonaActual == 0 ? "Sin aignar":to_string(zonaActual))<<endl;
-			cout<<"Placa: "<<placa<<endl;
+			cout<<"Edo: "<<(ocupado ? "En servicio":"Disponible")<<endl;
+			cout<<"Zona Asignada: "<<(zonaActual == 0 ? "Sin asignar":to_string(zonaActual))<<endl;
 		}
 		void edicionTrans(){
 			cout<<"Editando Aignacion, Unidad: "<<placa<<endl;
-			char buffer[50];
-			cout<<"Veterinario Actual: "<<VeterinarioName<<endl;
+			char buffer[sizeof(VeterinarioName)];
+			cout<<"Veterinario Asignado: "<<VeterinarioName<<endl;
 			cout<<"Nuevo Veterinario: ";
-			cin.getline(buffer,50);
-			if(strlen(buffer) > 0){
-				strncpy(VeterinarioName, buffer, 49);
-				VeterinarioName[49] = '\0';
+			cin.getline(buffer,sizeof(VeterinarioName));
+			if(buffer[0] != '\0'){
+				strncpy(VeterinarioName, buffer, sizeof(VeterinarioName)-1);
+				VeterinarioName[sizeof(VeterinarioName)-1] = '\0';
 			}
-			cout<<"Datos Actualizados"<<endl;
+			cout<<"Datos Actualizados";
 		}
 };
 

@@ -7,23 +7,15 @@
 class Clientes
 {
 	private: 
-		char cedula[13];
-		char Nombre[15];
-		char tlf[20];
-		int zonaClien;
-		char MascotaName[20];
-		char edadMascota[20];
-		char raza[19];
+		char cedula[13] = {0};
+		char Nombre[15] = {0};
+		char tlf[20] = {0};
+		int zonaClien = 0;
+		char MascotaName[20] = {0};
+		char edadMascota[20] = {0};
+		char raza[19] = {0};
 	public:
-		Clientes(){
-			memset(cedula, 0, sizeof(cedula));
-	        memset(Nombre, 0, sizeof(Nombre));
-	        memset(tlf, 0, sizeof(tlf));
-	        zonaClien = 0;
-	        memset(MascotaName, 0, sizeof(MascotaName));
-	        memset(edadMascota, 0, sizeof(edadMascota));
-	        memset(raza, 0, sizeof(raza));
-		}
+		Clientes(){}
 		const char* getcedula() const {return cedula;}
 		const char* getNombre() const{return Nombre;}
 		int getzonaClien() const{return zonaClien;}
@@ -47,37 +39,45 @@ class Clientes
 		    cin.getline(edadMascota, 20);
 		
 		    cout << "Zona Del Cliente: "; 
-		    cin >> zonaClien;	
+		    cin >> zonaClien;
+		    cin.ignore(1000, '\n');
 		}
+		static void printHeader() {
+			cout << "=======================================================================================================\n";
+			cout << left << setw(15) << "Cedula" 
+				 << setw(20) << "Nombre" 
+				 << setw(20) << "Mascota" 
+				 << setw(15) << "Raza" 
+				 << setw(10) << "Edad" 
+				 << setw(15) << "Telefono"
+				 << setw(10) << "Zona" << endl;
+			cout << "-------------------------------------------------------------------------------------------------------\n";
+		}
+
+		void showDataRow() const {
+			cout << left << setw(15) << cedula 
+				 << setw(20) << Nombre 
+				 << setw(20) << MascotaName 
+				 << setw(15) << raza 
+				 << setw(10) << edadMascota 
+				 << setw(15) << tlf
+				 << setw(10) << zonaClien << endl;
+		}
+
 		void showData() const{
-			cout << "--------------------------------------------------" << endl;
-        cout << left << setw(15) << "Cedula" 
-             << setw(20) << "Nombre" 
-             << setw(20) << "Mascota" 
-             << setw(20) << "Raza" << endl;
-        cout << left << setw(15) << cedula 
-             << setw(20) << Nombre 
-             << setw(20) << MascotaName 
-             << setw(20) << raza << endl;
-        cout << "Telefono: " << tlf << endl;
-        cout << "Zona Actual: " << zonaClien << endl;
+			printHeader();
+			showDataRow();
         }
         
 		void DataEdit() {
 			cout << "Editando... " << Nombre << endl;
 	        char Buff[50];
-	        cout << "Nuevo Nombre (Enter para mantener actual): ";
-	        cin.getline(Buff, 50);
-	        if (strlen(Buff) > 0) {
-	            strncpy(Nombre, Buff, 14);
-	            Nombre[14] = '\0'; 
-	        }
 	        cout << "Nuevo Telefono (Enter para mantener actual): ";
-	        cin.getline(Buff, 20);
-	        if (strlen(Buff) > 0) {
-	            strncpy(tlf, Buff, 19);
-	            tlf[19] = '\0';
-	        }
+	        cin.getline(Buff, sizeof(Buff));
+	        if (Buff[0] != '\0') {
+				strncpy(tlf, Buff, sizeof(tlf) - 1);
+				tlf[sizeof(tlf) - 1] = '\0';
+			}
 	        cout << "Actualizacion exitosa!!" << endl;
 		}
 };

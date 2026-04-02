@@ -31,7 +31,7 @@ void MenuCliente(Gestor& Gest){
         cout << "0. Volver al Menu Principal\n";
         cout << "Opcion: ";
         cin >> opc;
-        cin.ignore();
+        cin.ignore(1000, '\n');
         switch(opc) {
             case 1:
                 limpiar();
@@ -93,7 +93,7 @@ void MenuZone(GestionZona& Nega){
 }
 void TransMenu(GestionTrans& Tra){
 	int opc;
-    char auxPlaca[20];
+    char auxPlaca[30];
 
     do {
         limpiar();
@@ -145,7 +145,6 @@ void OperationMenu(GestionTrans& Gest, Gestor& Cli){
         cout << "0. Volver al Menu Principal\n";
         cout << "Opcion: ";
         cin >> opc;
-        cin.ignore(1000, '\n');
         switch(opc) {
             case 1:
                 limpiar();

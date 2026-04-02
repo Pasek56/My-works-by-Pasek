@@ -6,12 +6,10 @@ using namespace std;
 class Zone
 {
 	private:
-		int id;
-		char ZonaName[40];
+		int id = 0;
+		char ZonaName[40] = {0};
 	public:
 		Zone(){
-			id = 0;
-			strcmp(ZonaName,"");
 		}
 		int getid () const {
 			return id;
@@ -23,7 +21,7 @@ class Zone
 			cout<<"Ingrese el ID de la zona: "; cin>>id;
 			cin.ignore();
 			
-			cout<<"Ingrese el nombre de la zona con este id"; cin.getline(ZonaName,30);
+			cout<<"Ingrese el nombre de la zona con este id"; cin.getline(ZonaName,sizeof(ZonaName));
 		}
 		void Mostrar(){
 			cout<<"Zona: "<<ZonaName<<endl;

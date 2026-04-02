@@ -15,20 +15,19 @@ using namespace std;
 class GestionTrans
 {
 	private:
-		const char* ArchivoDB;
-		Colas Cool;
+		string ArchivoDB;
 	public:
-		GestionTrans(const char* archivo ){
+		GestionTrans(const string archivo ){
 			ArchivoDB = archivo;
 		}
 		void agregarUnidad(){
-			ofstream Archivo(ArchivoDB, ios::binary|ios::app);
+			ofstream Archivo(ArchivoDB.c_str(), ios::binary|ios::app);
 			Transporte Trans;
+			Trans.CaptureData();
 			if(!Archivo){
 				cout<<"Archivo corrupto o no existente"<<endl;
 			}
 			cout << "--- Registro de Nueva Unidad ---" << endl;
-			Trans.CaptureData();
 			Archivo.write(reinterpret_cast<char*>(&Trans), sizeof(Transporte));
 			if (Archivo.good()) {
 		        cout << ">> Unidad Registrada Exitosamente!!" << endl;
@@ -38,7 +37,7 @@ class GestionTrans
 		    Archivo.close();
 		}
 		void ListaTransporte(){
-			ifstream Archi(ArchivoDB, ios::binary);
+			ifstream Archi(ArchivoDB.c_str(), ios::binary);
 			if(!Archi){
 				cout<<"Archivo corrupto o inexistente";
 			}
@@ -50,7 +49,7 @@ class GestionTrans
 			Archi.close();
 		}
 		bool Existe(const char* placa){
-			ifstream Archi(ArchivoDB, ios::binary);
+			ifstream Archi(ArchivoDB.c_str(), ios::binary);
 			Transporte transporte;
 			while(Archi.read(reinterpret_cast<char*>(&transporte), sizeof(Transporte))){
 				if(strcmp(transporte.getplaca(), placa)==0){
@@ -61,7 +60,7 @@ class GestionTrans
 			return false;
 		}
 		void Modificacion(const char* placa){
-			fstream Archive(ArchivoDB, ios::binary|ios::in|ios::out);
+			fstream Archive(ArchivoDB.c_str(), ios::binary|ios::in|ios::out);
 			if(!Archive){
 				cout<<"Error en lectura"<<endl;
 			}
@@ -70,17 +69,14 @@ class GestionTrans
 			
 			while(Archive.read(reinterpret_cast<char*>(&T),sizeof(Transporte))){
 				if(strcmp(T.getplaca(),placa)==0){
-					T.Mostrar(); // Muestra datos actuales
-		            cout << "-------------Modificar Datos--------------\n";
-		            T.edicionTrans(); // Llama a la edición interna del objeto
-		            
-		            // Reposicionar el puntero de escritura y actualizar el registro
-		            Archive.seekp(-static_cast<int>(sizeof(Transporte)), ios::cur);
-		            Archive.write(reinterpret_cast<char*>(&T), sizeof(Transporte));
-		            
-		            Find = true;
-		            cout << ">> Unidad Modificada con éxito" << endl;
-		            break;
+					T.Mostrar();
+					cout<<"-------------Modificar Datos--------------";
+					T.edicionTrans();
+					Archive.seekp(-static_cast<int>(sizeof(Transporte)), ios::cur);
+                	Archive.write(reinterpret_cast<char*>(&T), sizeof(Transporte));
+                	Findid = true;
+                	cout<<">>Unidad Modificada"<<endl;
+                	break;
 				}
 			}
 			Archive.close();
@@ -89,7 +85,7 @@ class GestionTrans
 			}
 		}
 		void BorrarTransporte(const char* placa){
-			ifstream ArchiveIn(ArchivoDB, ios::binary);
+			ifstream ArchiveIn(ArchivoDB.c_str(), ios::binary);
 			ofstream ArchiveOut("TempD.dat", ios::binary);
 			if(!ArchiveIn) return;
 			
@@ -107,8 +103,8 @@ class GestionTrans
 			ArchiveOut.close();
 			
 			if(Elimininated){
-				remove(ArchivoDB);
-				rename("TempD.dat",ArchivoDB);
+				remove(ArchivoDB.c_str());
+				rename("TempD.dat",ArchivoDB.c_str());
 				cout<<">>Unidad eliminada";
 			}else{
 				remove("TempD.dat");
@@ -116,16 +112,17 @@ class GestionTrans
 			}
 		}
 		void Asignacion(){
-			fstream Arc(ArchivoDB, ios::binary|ios::in|ios::out); 
+			fstream Arc(ArchivoDB.c_str(), ios::binary|ios::in|ios::out); 
 			if(!Arc){
 				cout<<"Error de edicion";
 				return;
 			}
-			char PlacaS[20];
+			char PlacaS[30];
 			int newIDZone, NuevaHora;
 			cout<<"\\ Asignacion de inicio //";
 			cout<<"Ingrese la placa: ";
-			cin.getline(PlacaS,20);
+			cin.ignore();
+			cin.getline(PlacaS,30);
 			Transporte TR;
 			bool Finded = false;
 			
@@ -134,7 +131,7 @@ class GestionTrans
 					cout << "Asignando unidad " << TR.getplaca() << " a nueva zona fija." << endl;
 		            cout << "Nueva Zona: "; cin >> newIDZone;
 					do{
-						cout<<"Ingrese la hora de llegada: "; cin>>NuevaHora;
+						cout<<"Ingrese la hora de llegada(HHMM): "; cin>>NuevaHora;
 						if(NuevaHora >= 0 && NuevaHora <= 2359 && (NuevaHora % 100) <= 59){
 							break;
 						}
@@ -155,24 +152,25 @@ class GestionTrans
 			}
 			Arc.close();
 		}
-		void Solicitud(){	
+		void Solicitud(Grafo& grafo){	
 			ifstream ArcIn(ArchivoDB, ios::binary);
     		if (!ArcIn) return;
     		
 			char CedulaCliente[50];
-			int zonaOri, Opc2;
+			int zonaOri, zonaDestino, Opc2;
 			char Requerimento[20];
 			
 			cout << "\n--- SOLICITUD DE SERVICIO VETERINARIO ---\n";
 	        cout << "Ingrese Cedula del Cliente: "; cin >> CedulaCliente;
-	        cout << "ID de Zona donde esta el cliente: "; cin >> zonaOri;
+	        cout << "ID de Zona donde esta el cliente (Origen): "; cin >> zonaOri;
+	        cout << "ID de Zona a donde se dirige (Destino): "; cin >> zonaDestino;
 	        cout << "Especialidad requerida:\n";
 	        cout << "1. Emergencia\n2. Chequeo\n3. General\nOpcion: ";
 	        cin >> Opc2;
 	        
 	        if(Opc2 == 1) strcpy(Requerimento, "Emergencias");
 	        else if(Opc2 == 2) strcpy(Requerimento,"Chequeo");
-	        else if(Opc2 == 3) strcpy(Requerimento,"General");
+	        else if(Opc2 == 3) strcpy(Requerimento,"Medico General");
 	        else {
 	        	cout<<"Ingrese una opcion valida.";
 	        	return;
@@ -182,35 +180,61 @@ class GestionTrans
 	        vector<Transporte> Candidatos;
 	        
 	        while(ArcIn.read(reinterpret_cast<char*>(&Tr),sizeof(Transporte))){
-	        	if(!Tr.getocupado()&&Tr.getzonaActual()==
-				zonaOri&&strcmp(Tr.getespecialidadVet(),Requerimento)==0){
+	        	if(!Tr.getocupado() && strcmp(Tr.getespecialidadVet(),Requerimento)==0){
 					Candidatos.push_back(Tr);
 				}
 			}
 			ArcIn.close();
 			if(Candidatos.empty()){
-				cout<<"Servicio denegado, no hay Unidades disponibles";
-				ArcIn.close();
+				cout<<"Servicio denegado, no hay Unidades disponibles con esa especialidad.";
 				return;
 			}
-			sort(Candidatos.begin(), Candidatos.end(), [](const Transporte& a, Transporte& b){
-				return a.getHora() > b.getHora();	
+			sort(Candidatos.begin(), Candidatos.end(), [](const Transporte& a, const Transporte& b){
+				return a.getHora() < b.getHora();	
 			});
 			
-			cout << "\nUnidades disponibles en su zona (Ordenadas por llegada):" << endl;
+			cout << "\nUnidades disponibles (Ordenadas por llegada):" << endl;
 		    for (int i = 0; i < Candidatos.size(); i++) {
 		        cout << i + 1 << ". Placa: " << Candidatos[i].getplaca() 
-		             << " | Especialidad: " << Candidatos[i].getespecialidadVet()
+		             << " | Zona actual: " << Candidatos[i].getzonaActual()
 		             << " | Hora de llegada: " << Candidatos[i].getHora() << " hrs" << endl;
 		    }
 
     		int sel; cin >> sel;
 		    if (sel < 1 || sel > Candidatos.size()) {
 		        cout << "Seleccion invalida." << endl;
-		        ArcIn.close();
 		        return;
-		    }else if(sel >= 1 && sel <= Candidatos.size()){
-		    	AsignarServicio(Candidatos[sel-1].getplaca(),CedulaCliente, zonaOri);
+		    }else {
+		    	Transporte seleccionada = Candidatos[sel-1];
+		    	int objZona = seleccionada.getzonaActual();
+		    	vector<int> rutaBusqueda;
+		    	int distBusqueda = 0;
+		    	
+		    	if (grafo.obtenerRutaMinima(objZona, zonaOri, rutaBusqueda, distBusqueda)) {
+		    		cout << "\n--- RUTA PARA BUSCAR AL CLIENTE ---" << endl;
+		    		cout << "Secuencia: ";
+		    		for (int i = 0; i < rutaBusqueda.size(); i++) {
+		    			cout << rutaBusqueda[i] << (i < rutaBusqueda.size() - 1 ? " -> " : "");
+					}
+					cout << "\nDistancia Total: " << distBusqueda << " km" << endl;
+				} else {
+					cout << "\n[Advertencia] No hay ruta posible desde la zona de la unidad (" << objZona << ") a la zona del cliente (" << zonaOri << ")." << endl;
+				}
+				
+				vector<int> rutaDestino;
+				int distDestino = 0;
+				if (grafo.obtenerRutaMinima(zonaOri, zonaDestino, rutaDestino, distDestino)) {
+		    		cout << "\n--- RUTA PARA LLEVAR AL DESTINO ---" << endl;
+		    		cout << "Secuencia: ";
+		    		for (int i = 0; i < rutaDestino.size(); i++) {
+		    			cout << rutaDestino[i] << (i < rutaDestino.size() - 1 ? " -> " : "");
+					}
+					cout << "\nDistancia Total: " << distDestino << " km" << endl;
+				} else {
+					cout << "\n[Advertencia] No hay ruta posible desde la zona de origen (" << zonaOri << ") a la del destino (" << zonaDestino << ")." << endl;
+				}
+
+		    	AsignarServicio(seleccionada.getplaca(), CedulaCliente, zonaDestino); 
 			}
 		}
 		void AsignarServicio(const char* placa, const char* cedula, int zona) {
@@ -220,6 +244,7 @@ class GestionTrans
 		    while (Arc.read(reinterpret_cast<char*>(&Tr), sizeof(Transporte))) {
 		        if (strcmp(Tr.getplaca(), placa) == 0) {
 		            Tr.setocupado(true);
+		            Tr.setzonaActual(zona); // Actualizamos la zona a la del destino final
 		            Arc.seekp(-static_cast<int>(sizeof(Transporte)), ios::cur);
 		            Arc.write(reinterpret_cast<char*>(&Tr), sizeof(Transporte));
 		            exito = true;
@@ -229,20 +254,20 @@ class GestionTrans
 		    Arc.close();
 		    if (exito) {
 		        ofstream Bitacora("Historial.txt", ios::app);
-		        Bitacora << "Unidad: " << placa << " | Cliente: " << cedula << " | Zona: " << zona << endl;
+		        Bitacora << "Unidad: " << placa << " | Cliente: " << cedula << " | Destino final (Zona): " << zona << endl;
 		        Bitacora.close();
-		        cout << "\n[SISTEMA] Unidad " << placa << " vinculada al cliente " << cedula << endl;
+		        cout << "\n[SISTEMA] Unidad " << placa << " vinculada al cliente " << cedula << ", asignada temporalmente hacia zona " << zona << endl;
 		    }
 		}
 		void FinalizarEncargo(Gestor& Gest){
 			fstream Archive(ArchivoDB, ios::binary| ios::in|ios::out);
-			if(!Archive) {
-				return;
-			}
-			char Plac[10];
+			if(!Archive) return;
+			Clientes clienteEnEspera;
+			char Plac[30];
+			cin.ignore();
 			cout<<"¡Finalizacion de Servicio!"<<endl;
 			cout<<"Ingrese la placa: "<<endl;
-			cin.getline(Plac,10);
+			cin.getline(Plac,30);
 			
 			Transporte Tr;
 			bool Encontrado = false;
@@ -256,24 +281,26 @@ class GestionTrans
 					}else{
 						int zoneservice = Tr.getzonaActual();						
 						Colas& Controller = Gest.getControladorColas();
-						Clientes* Next = Controller.NextQue(zoneservice);
+						bool Next = Controller.NextQue(zoneservice, clienteEnEspera);
 						
-						if(Next != nullptr){
+						if(Next == true){
 							cout<<"\n[!] ATENCIÓN: Hay clientes esperando en la zona "<<zoneservice<<endl;
 							char respuesta;
-							cout<<"El cliente aun necesita el servicio? (S/N): ";cin>>respuesta;
+							cout<<"El cliente aun necesita el servicio?: ";cin>>respuesta;
 							if(toupper(respuesta) == 'S'){
 								Tr.setocupado(true);
 								Controller.DeleteofQue(zoneservice);
-								cout << ">> Servicio asignado: " << Next->getNombre() << endl;
-							}else if(toupper(respuesta)=='N'){
-								cout<<"[INFO] No hay clientes en espera en la zona"<<endl;
+								cout << ">> Servicio asignado: " << clienteEnEspera.getNombre() << endl;
+							} else {
+								Controller.DeleteofQue(zoneservice);
+								cout<<"[INFO] Cliente retirado de la cola. Procediendo a liberar unidad."<<endl;
 								liberarUnidad(Tr);
 							}
-						}
+						} else {
+							liberarUnidad(Tr);
+						}	
 						Archive.seekp(-static_cast<int>(sizeof(Transporte)),ios::cur);
 						Archive.write(reinterpret_cast<char*>(&Tr),sizeof(Transporte));
-						Archive.flush();
 					}                                                               
 					break;
 				}
