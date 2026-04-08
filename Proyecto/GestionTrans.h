@@ -10,8 +10,8 @@
 #include "Clientes.h"
 #include "Colas.h"
 #include "Gestor.h"
+#include "Grafo.h"
 using namespace std;
-
 class GestionTrans
 {
 	private:
@@ -153,17 +153,16 @@ class GestionTrans
 			Arc.close();
 		}
 		void Solicitud(Grafo& grafo){	
-			ifstream ArcIn(ArchivoDB, ios::binary);
+			ifstream ArcIn(ArchivoDB.c_str(), ios::binary);
     		if (!ArcIn) return;
     		
 			char CedulaCliente[50];
-			int zonaOri, zonaDestino, Opc2;
+			int zonaOri, Opc2;
 			char Requerimento[20];
 			
 			cout << "\n--- SOLICITUD DE SERVICIO VETERINARIO ---\n";
 	        cout << "Ingrese Cedula del Cliente: "; cin >> CedulaCliente;
-	        cout << "ID de Zona donde esta el cliente (Origen): "; cin >> zonaOri;
-	        cout << "ID de Zona a donde se dirige (Destino): "; cin >> zonaDestino;
+	        cout << "ID de Zona donde esta el cliente: "; cin >> zonaOri;
 	        cout << "Especialidad requerida:\n";
 	        cout << "1. Emergencia\n2. Chequeo\n3. General\nOpcion: ";
 	        cin >> Opc2;
@@ -180,71 +179,77 @@ class GestionTrans
 	        vector<Transporte> Candidatos;
 	        
 	        while(ArcIn.read(reinterpret_cast<char*>(&Tr),sizeof(Transporte))){
-	        	if(!Tr.getocupado() && strcmp(Tr.getespecialidadVet(),Requerimento)==0){
+	        	if(!Tr.getocupado()&&strcmp(Tr.getespecialidadVet(),Requerimento)==0){
 					Candidatos.push_back(Tr);
 				}
 			}
 			ArcIn.close();
 			if(Candidatos.empty()){
-				cout<<"Servicio denegado, no hay Unidades disponibles con esa especialidad.";
+				cout<<"Servicio denegado, no hay Unidades disponibles";
+				ArcIn.close();
 				return;
 			}
 			sort(Candidatos.begin(), Candidatos.end(), [](const Transporte& a, const Transporte& b){
 				return a.getHora() < b.getHora();	
 			});
 			
-			cout << "\nUnidades disponibles (Ordenadas por llegada):" << endl;
+			cout << "\nUnidades disponibles en su zona (Ordenadas por llegada):" << endl;
 		    for (int i = 0; i < Candidatos.size(); i++) {
 		        cout << i + 1 << ". Placa: " << Candidatos[i].getplaca() 
-		             << " | Zona actual: " << Candidatos[i].getzonaActual()
+		             << " | Especialidad: " << Candidatos[i].getespecialidadVet()
 		             << " | Hora de llegada: " << Candidatos[i].getHora() << " hrs" << endl;
 		    }
 
     		int sel; cin >> sel;
 		    if (sel < 1 || sel > Candidatos.size()) {
 		        cout << "Seleccion invalida." << endl;
+		        ArcIn.close();
 		        return;
-		    }else {
-		    	Transporte seleccionada = Candidatos[sel-1];
-		    	int objZona = seleccionada.getzonaActual();
-		    	vector<int> rutaBusqueda;
-		    	int distBusqueda = 0;
+		    }else if(sel >= 1 && sel <= Candidatos.size()){
+		    	int destOri;
+		    	cout << "Ingrese la Zona de Destino (donde el cliente desea ir): "; cin>>destOri;
 		    	
-		    	if (grafo.obtenerRutaMinima(objZona, zonaOri, rutaBusqueda, distBusqueda)) {
-		    		cout << "\n--- RUTA PARA BUSCAR AL CLIENTE ---" << endl;
-		    		cout << "Secuencia: ";
-		    		for (int i = 0; i < rutaBusqueda.size(); i++) {
-		    			cout << rutaBusqueda[i] << (i < rutaBusqueda.size() - 1 ? " -> " : "");
-					}
-					cout << "\nDistancia Total: " << distBusqueda << " km" << endl;
-				} else {
-					cout << "\n[Advertencia] No hay ruta posible desde la zona de la unidad (" << objZona << ") a la zona del cliente (" << zonaOri << ")." << endl;
+		    	int zonaUnd = Candidatos[sel-1].getzonaActual();
+		    	int distAlCliente = 0, distAlDestino = 0;
+		    	vector<int> rutaAlCliente, rutaAlDestino;
+		    	
+		    	bool llegaC = true, llegaD = true;
+		    	if(zonaUnd != zonaOri) llegaC = grafo.aplicarDijkstra(zonaUnd, zonaOri, distAlCliente, rutaAlCliente);
+		    	else { distAlCliente = 0; rutaAlCliente.push_back(zonaUnd); }
+		    	
+		    	if(zonaOri != destOri) llegaD = grafo.aplicarDijkstra(zonaOri, destOri, distAlDestino, rutaAlDestino);
+		    	else { distAlDestino = 0; rutaAlDestino.push_back(zonaOri); }
+		    	
+		    	if(!llegaC || !llegaD){
+		    		cout << "[!] No hay ruta posible (grafo desconectado). Operacion cancelada."<<endl;
+		    		return;
 				}
 				
-				vector<int> rutaDestino;
-				int distDestino = 0;
-				if (grafo.obtenerRutaMinima(zonaOri, zonaDestino, rutaDestino, distDestino)) {
-		    		cout << "\n--- RUTA PARA LLEVAR AL DESTINO ---" << endl;
-		    		cout << "Secuencia: ";
-		    		for (int i = 0; i < rutaDestino.size(); i++) {
-		    			cout << rutaDestino[i] << (i < rutaDestino.size() - 1 ? " -> " : "");
-					}
-					cout << "\nDistancia Total: " << distDestino << " km" << endl;
-				} else {
-					cout << "\n[Advertencia] No hay ruta posible desde la zona de origen (" << zonaOri << ") a la del destino (" << zonaDestino << ")." << endl;
+				cout << "\n=== CALCULANDO RUTA MINIMA (DIJKSTRA) ===\n";
+				cout << "  Unidad a buscar cliente (" << zonaUnd << " -> " << zonaOri << "): ";
+				for(size_t i=0; i<rutaAlCliente.size(); ++i){
+					cout << rutaAlCliente[i] << (i == rutaAlCliente.size()-1 ? "" : " -> ");
 				}
-
-		    	AsignarServicio(seleccionada.getplaca(), CedulaCliente, zonaDestino); 
+				cout << " | Distancia: " << distAlCliente << " km\n";
+				
+				cout << "  Llevando cliente a destino (" << zonaOri << " -> " << destOri << "): ";
+				for(size_t i=0; i<rutaAlDestino.size(); ++i){
+					cout << rutaAlDestino[i] << (i == rutaAlDestino.size()-1 ? "" : " -> ");
+				}
+				cout << " | Distancia: " << distAlDestino << " km\n";
+				
+				cout << ">> Total del Recorrido: " << (distAlCliente + distAlDestino) << " km" << endl;
+		    	
+		    	AsignarServicio(Candidatos[sel-1].getplaca(),CedulaCliente, destOri);
 			}
 		}
 		void AsignarServicio(const char* placa, const char* cedula, int zona) {
-		    fstream Arc(ArchivoDB, ios::binary | ios::in | ios::out);
+		    fstream Arc(ArchivoDB.c_str(), ios::binary | ios::in | ios::out);
 		    Transporte Tr;
 		    bool exito = false;
 		    while (Arc.read(reinterpret_cast<char*>(&Tr), sizeof(Transporte))) {
 		        if (strcmp(Tr.getplaca(), placa) == 0) {
 		            Tr.setocupado(true);
-		            Tr.setzonaActual(zona); // Actualizamos la zona a la del destino final
 		            Arc.seekp(-static_cast<int>(sizeof(Transporte)), ios::cur);
 		            Arc.write(reinterpret_cast<char*>(&Tr), sizeof(Transporte));
 		            exito = true;
@@ -254,13 +259,13 @@ class GestionTrans
 		    Arc.close();
 		    if (exito) {
 		        ofstream Bitacora("Historial.txt", ios::app);
-		        Bitacora << "Unidad: " << placa << " | Cliente: " << cedula << " | Destino final (Zona): " << zona << endl;
+		        Bitacora << "Unidad: " << placa << " | Cliente: " << cedula << " | Zona: " << zona << endl;
 		        Bitacora.close();
-		        cout << "\n[SISTEMA] Unidad " << placa << " vinculada al cliente " << cedula << ", asignada temporalmente hacia zona " << zona << endl;
+		        cout << "\n[SISTEMA] Unidad " << placa << " vinculada al cliente " << cedula << " en destino " << zona << endl;
 		    }
 		}
 		void FinalizarEncargo(Gestor& Gest){
-			fstream Archive(ArchivoDB, ios::binary| ios::in|ios::out);
+			fstream Archive(ArchivoDB.c_str(), ios::binary| ios::in|ios::out);
 			if(!Archive) return;
 			Clientes clienteEnEspera;
 			char Plac[30];

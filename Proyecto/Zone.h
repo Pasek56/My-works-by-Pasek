@@ -20,15 +20,17 @@ class Zone
 		void Ingreso(){
 			cout<<"Ingrese el ID de la zona: "; cin>>id;
 			cin.ignore();
-			
-			cout<<"Ingrese el nombre de la zona con este id"; cin.getline(ZonaName,sizeof(ZonaName));
+			cout<<"Ingrese el nombre de la zona con este ID: "; cin.getline(ZonaName,sizeof(ZonaName));
 		}
 		void Mostrar(){
 			cout<<"Zona: "<<ZonaName<<endl;
 			cout<<"ID De zona: "<<id<<endl;
 			cout<<"-------------------------"<<endl;
 		}
-		void setZonaName(const char* n){
+		void setId(int newId) {
+		id = newId;
+	}
+	void setZonaName(const char* n){
 			strncpy(ZonaName,n,39);
 			ZonaName[39] = '\0';
 		}

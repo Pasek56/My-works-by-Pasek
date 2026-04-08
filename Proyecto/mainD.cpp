@@ -6,6 +6,7 @@
 #include "GestionTrans.h"
 #include "Gestor.h"
 #include "GestionZona.h"
+#include "Grafo.h"
 using namespace std;
 //Participantes
 //Miguel Parada V-31.420.052
@@ -68,6 +69,7 @@ void MenuZone(GestionZona& Nega){
         cout << "1. Registrar Zona\n";
         cout << "2. Listar Zonas\n";
         cout << "3. Modificar Nombre de Zona\n";
+        cout << "4. Conectar Zonas (Asignar Distancia)\n";
         cout << "0. Volver al Menu Principal\n";
         cout << "Opcion: ";
         cin >> opc;
@@ -88,6 +90,11 @@ void MenuZone(GestionZona& Nega){
                 Nega.Modificar(); 
                 pausar();
                 break;
+            case 4:
+            	limpiar();
+            	Nega.ConectarZonas("Grafo.txt");
+            	pausar();
+            	break;
         }
     } while(opc != 0);
 }
@@ -134,7 +141,7 @@ void TransMenu(GestionTrans& Tra){
         }
     } while(opc != 0);
 }
-void OperationMenu(GestionTrans& Gest, Gestor& Cli){
+void OperationMenu(GestionTrans& Gest, Gestor& Cli, Grafo& grafo){
 	int opc;
     do {
         limpiar();
@@ -153,7 +160,7 @@ void OperationMenu(GestionTrans& Gest, Gestor& Cli){
                 break;
             case 2:
                 limpiar();
-                Gest.Solicitud(); 
+                Gest.Solicitud(grafo); 
                 pausar();
                 break;
             case 3:
@@ -170,6 +177,7 @@ int main(int argc, char** argv) {
     GestionZona gZonas("zonas.dat");
     GestionTrans gTransporte("transporte.dat");
     Reportes gReportes;
+    Grafo myGrafo("Grafo.txt");
     int OPC;
     do {
         limpiar();
@@ -197,7 +205,7 @@ int main(int argc, char** argv) {
                 TransMenu(gTransporte);
                 break;
             case 4:
-                OperationMenu(gTransporte,gClientes);
+                OperationMenu(gTransporte, gClientes, myGrafo);
                 break;
             case 5:
                 limpiar();

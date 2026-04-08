@@ -33,7 +33,7 @@ class Transporte
 			int opc;
 			cout<<"1) Emergencia"<<endl;
 			cout<<"2) Chequeo"<<endl;
-			cout<<"3) General"<<endl;
+			cout<<"3) Medico General"<<endl;
 			cin>>opc;
 			switch(opc){
 				case 1:
@@ -59,16 +59,39 @@ class Transporte
 			cout<<"Zona Asignada: "<<(zonaActual == 0 ? "Sin asignar":to_string(zonaActual))<<endl;
 		}
 		void edicionTrans(){
-			cout<<"Editando Aignacion, Unidad: "<<placa<<endl;
-			char buffer[sizeof(VeterinarioName)];
-			cout<<"Veterinario Asignado: "<<VeterinarioName<<endl;
-			cout<<"Nuevo Veterinario: ";
-			cin.getline(buffer,sizeof(VeterinarioName));
-			if(buffer[0] != '\0'){
-				strncpy(VeterinarioName, buffer, sizeof(VeterinarioName)-1);
-				VeterinarioName[sizeof(VeterinarioName)-1] = '\0';
-			}
-			cout<<"Datos Actualizados";
+			int opc;
+			do {
+				cout << "\n=== EDITANDO UNIDAD (Placa: " << placa << ") ===\n";
+				cout << "1. Modificar Veterinario asigado\n";
+				cout << "2. Modificar Especialidad\n";
+				cout << "0. Guardar y Salir\n";
+				cout << "Seleccione: "; cin >> opc;
+				cin.ignore(1000, '\n');
+				
+				char buffer[50];
+				switch(opc){
+					case 1:
+						cout << "Veterinario Actual: " << VeterinarioName << "\nNuevo Veterinario (Enter para omitir): ";
+						cin.getline(buffer, sizeof(buffer));
+						if(buffer[0] != '\0') { strncpy(VeterinarioName, buffer, sizeof(VeterinarioName)-1); VeterinarioName[sizeof(VeterinarioName)-1] = '\0'; }
+						break;
+					case 2:
+						cout << "Especialidad Actual: " << especialidadVet << "\n";
+						cout << "Nueva Especialidad:\n 1) Emergencias\n 2) Chequeo\n 3) Medico General\n (Cualquier otra para omitir): ";
+						int subOpc;
+						cin >> subOpc;
+						cin.ignore(1000, '\n');
+						if(subOpc == 1) strcpy(especialidadVet, "Emergencias");
+						else if(subOpc == 2) strcpy(especialidadVet, "Chequeo");
+						else if(subOpc == 3) strcpy(especialidadVet, "Medico General");
+						break;
+					case 0:
+						cout << "Saliendo de la edicion..." << endl;
+						break;
+					default:
+						cout << "Opcion invalida." << endl;
+				}
+			} while(opc != 0);
 		}
 };
 

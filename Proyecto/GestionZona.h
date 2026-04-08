@@ -23,7 +23,13 @@ class GestionZona
 			}
 			Arc.write(reinterpret_cast<char*>(&z),sizeof(Zone));
 			Arc.close();
-			cout<<"Zona registrada exitosamente";
+			cout<<"Zona registrada exitosamente\n";
+			
+			char opc;
+			cout << "¿Desea conectar esta zona con otra existente? (s/n): "; cin >> opc;
+			if(tolower(opc) == 's'){
+				ConectarZonas("Grafo.txt", z.getid());
+			}
 		}
 		void ListaZonas(){
 			ifstream Arc2(DataBase.c_str(), ios::binary); 
@@ -45,7 +51,7 @@ class GestionZona
 			}
 			int idS;
 			cout<<"Ingrese el id de la zona: "; cin>>idS;
-			cin.ignore();
+			cin.ignore(1000, '\n');
 			Zone B;
 			bool Find = false;
 			
@@ -69,6 +75,64 @@ class GestionZona
 			if(!Find){
 				cout<<"Zona no encontrada";
 			}
+		}
+		
+	bool ExisteZona(int idBuscado) {
+			ifstream arc(DataBase.c_str(), ios::binary);
+			if(!arc) return false;
+			Zone Z;
+			while(arc.read(reinterpret_cast<char*>(&Z), sizeof(Zone))) {
+				if(Z.getid() == idBuscado) {
+					arc.close();
+					return true;
+				}
+			}
+			arc.close();
+			return false;
+		}
+		
+		void ConectarZonas(const char* archivoGrafo, int idBase = -1) {
+			int idOri, idDest, dist;
+			cout << "\n=== CONEXION DE ZONAS ===" << endl;
+			
+			if (idBase != -1) {
+				idOri = idBase;
+				cout << "Zona de origen fijada a: " << idOri << endl;
+			} else {
+				cout << "Ingrese el ID de la primera zona (Origen): "; cin >> idOri;
+			}
+			
+			if (!ExisteZona(idOri)) {
+				cout << "[!] Error: La zona " << idOri << " no existe en la base de datos." << endl;
+				return;
+			}
+			
+			cout << "Ingrese el ID de la segunda zona (Destino): "; cin >> idDest;
+			if (!ExisteZona(idDest)) {
+				cout << "[!] Error: La zona " << idDest << " no existe en la base de datos." << endl;
+				return;
+			}
+			
+			if(idOri == idDest) {
+				cout << "[!] Error: No puedes conectar una zona consigo misma." << endl;
+				return;
+			}
+			
+			cout << "Ingrese la distancia entre ambas zonas (km): "; cin >> dist;
+			if (dist <= 0) {
+				cout << "[!] Error: La distancia debe ser mayor a 0." << endl;
+				return;
+			}
+			
+			ofstream fileG(archivoGrafo, ios::app);
+			if(!fileG) {
+				cout << "Error abriendo el archivo de grafos." << endl;
+				return;
+			}
+			
+			fileG << idOri << "," << idDest << "," << dist << "\n";
+			fileG.close();
+			cout << ">> Conexion registrada exitosamente (" << idOri << " <--> " << idDest << " : " << dist << " km)\n";
 		}
 		
 };

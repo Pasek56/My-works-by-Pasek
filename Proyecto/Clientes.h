@@ -4,6 +4,7 @@
 #include <cstring>
 #include <limits>
 #include <iostream>
+#include "GestionZona.h"
 class Clientes
 {
 	private: 
@@ -41,6 +42,11 @@ class Clientes
 		    cout << "Zona Del Cliente: "; 
 		    cin >> zonaClien;
 		    cin.ignore(1000, '\n');
+			GestionZona gz("zonas.dat");
+			if (!gz.ExisteZona(zonaClien)) {
+				cout << "[!] La zona " << zonaClien << " no existe. Registrando nueva zona...\n";
+				gz.registro();
+			}
 		}
 		static void printHeader() {
 			cout << "=======================================================================================================\n";
@@ -70,15 +76,40 @@ class Clientes
         }
         
 		void DataEdit() {
-			cout << "Editando... " << Nombre << endl;
-	        char Buff[50];
-	        cout << "Nuevo Telefono (Enter para mantener actual): ";
-	        cin.getline(Buff, sizeof(Buff));
-	        if (Buff[0] != '\0') {
-				strncpy(tlf, Buff, sizeof(tlf) - 1);
-				tlf[sizeof(tlf) - 1] = '\0';
-			}
-	        cout << "Actualizacion exitosa!!" << endl;
+			int opc;
+			do {
+				cout << "\n=== EDITANDO CLIENTE (CI: " << cedula << ") ===\n";
+				cout << "1. Modificar Nombre\n";
+				cout << "2. Modificar Telefono\n";
+				cout << "3. Modificar Nombre de Mascota\n";
+				cout << "0. Guardar y Salir\n";
+				cout << "Seleccione: "; cin >> opc;
+				cin.ignore(1000, '\n');
+				
+				char Buff[50];
+				switch(opc) {
+					case 1:
+						cout << "Nombre Actual: " << Nombre << "\nNuevo Nombre (Enter para omitir): ";
+						cin.getline(Buff, sizeof(Buff));
+						if(Buff[0] != '\0') { strncpy(Nombre, Buff, sizeof(Nombre)-1); Nombre[sizeof(Nombre)-1] = '\0'; }
+						break;
+					case 2:
+						cout << "Telefono Actual: " << tlf << "\nNuevo Telefono (Enter para omitir): ";
+						cin.getline(Buff, sizeof(Buff));
+						if(Buff[0] != '\0') { strncpy(tlf, Buff, sizeof(tlf)-1); tlf[sizeof(tlf)-1] = '\0'; }
+						break;
+					case 3:
+						cout << "Mascota Actual: " << MascotaName << "\nNuevo Nombre (Enter para omitir): ";
+						cin.getline(Buff, sizeof(Buff));
+						if(Buff[0] != '\0') { strncpy(MascotaName, Buff, sizeof(MascotaName)-1); MascotaName[sizeof(MascotaName)-1] = '\0'; }
+						break;
+					case 0:
+						cout << "Saliendo de la edicion..." << endl;
+						break;
+					default:
+						cout << "Opcion invalida." << endl;
+				}
+			} while(opc != 0);
 		}
 };
 #endif
